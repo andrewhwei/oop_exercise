@@ -6,11 +6,11 @@
 # 6. CHALLENGE: Change the interface with better prompts, ASCII art, etc. Be as creative as you'd like!
 
 class Card
-  attr_reader :question, :choices, :no_of_incorrect_tries, :user_answer_correct
+  attr_reader :question, :answers, :choices, :no_of_incorrect_tries, :user_answer_correct
 
   def initialize(question, answers)
     @question = question
-    @correct_answer = answers[0]
+    @answers = answers
     @choices = answers.shuffle
     @no_of_incorrect_tries = 0
     @user_answer_correct = 0
@@ -18,7 +18,7 @@ class Card
 
   def check_answer
     while @no_of_incorrect_tries <= 1 && @user_answer_correct == 0
-      if gets.chomp.downcase == @correct_answer.downcase
+      if gets.chomp.downcase == @answers[0].downcase
         puts "Correct!"
         @user_answer_correct = 1
       elsif @no_of_incorrect_tries <= 1
@@ -66,7 +66,7 @@ trivia_data = {
 }
 
 deck = Deck.new(trivia_data) # deck is an instance of the Deck class
-# second_try = {}
+second_try = {}
 
 while deck.remaining_cards > 0
   card = deck.draw_card # card is an instance of the Card class
@@ -77,12 +77,24 @@ while deck.remaining_cards > 0
   card.check_answer
   deck.tally_score(card.user_answer_correct, card.no_of_incorrect_tries)
 
-  # if card.no_of_incorrect_tries == 2
-
-  # end
+  if card.no_of_incorrect_tries == 2
+    second_try[card.question] = card.answers
+  end
 end
 
-puts "You answered #{deck.no_correct_answers} questions correctly and had #{deck.no_incorrect_answers} incorrect attempts. Thanks for playing!"
+second_try_deck = Deck.new(second_try)
+
+while second_try_deck.remaining_cards > 0
+  card = second_try_deck.draw_card
+  puts 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr
+  puts card.question
+  puts "Pick an answer from the following:"
+  puts card.choices
+  card.check_answer
+  second_try_deck.tally_score(card.user_answer_correct, card.no_of_incorrect_tries)
+end
+
+puts "You answered #{deck.no_correct_answers + second_try_deck.no_correct_answers} questions correctly and had #{deck.no_incorrect_answers + second_try_deck.no_incorrect_answers} incorrect attempts. Thanks for playing!"
 
 
 
