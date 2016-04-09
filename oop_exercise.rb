@@ -32,17 +32,16 @@ class Card
   end
 end
 
-
 class Deck
-  attr_reader :remaining_cards, :no_correct_answers, :no_incorrect_answers
+  attr_reader :remaining_cards
 
   def initialize(trivia_data)
     @cards = []
-    @no_correct_answers = 0
-    @no_incorrect_answers = 0
 
-    trivia_data.each do |question, answers|
-      @cards.push(Card.new(question, answers))
+    if trivia_data != nil
+      trivia_data.each do |question, answers|
+        @cards.push(Card.new(question, answers))
+      end
     end
 
     @remaining_cards = @cards.size
@@ -52,10 +51,36 @@ class Deck
     @remaining_cards -= 1
     return @cards.pop
   end
+end
+
+class Gamestate
+  attr_reader :second_try_questions, :no_correct_answers, :no_incorrect_answers
+
+  def initialize
+    @second_try_questions = {}
+    @no_correct_answers = 0
+    @no_incorrect_answers = 0
+  end
 
   def tally_score(user_answer_correct, no_of_incorrect_tries)
     @no_correct_answers += user_answer_correct
     @no_incorrect_answers += no_of_incorrect_tries
+  end
+
+  def start_game(deck, first_try)
+    while deck.remaining_cards > 0
+      card = deck.draw_card # card is an instance of the Card class
+      puts 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr
+      puts card.question
+      puts "Pick an answer from the following:"
+      puts card.choices
+      card.check_answer
+      tally_score(card.user_answer_correct, card.no_of_incorrect_tries)
+
+      if first_try && card.no_of_incorrect_tries == 2
+        @second_try_questions[card.question] = card.answers
+      end
+    end
   end
 end
 
@@ -64,37 +89,16 @@ trivia_data = {
   "Is Africa a country or a continent?" => ["Continent", "Country"],
   "Tug of war was once an Olympic event. True or false?" => ["True", "False"]
 }
+gamestate = Gamestate.new
+deck = Deck.new(trivia_data)
+gamestate.start_game(deck, true)
+puts 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr
+puts "Welcome to the redemption round."
+second_try_deck = Deck.new(gamestate.second_try_questions)
+gamestate.start_game(second_try_deck, false)
 
-deck = Deck.new(trivia_data) # deck is an instance of the Deck class
-second_try = {}
 
-while deck.remaining_cards > 0
-  card = deck.draw_card # card is an instance of the Card class
-  puts 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr
-  puts card.question
-  puts "Pick an answer from the following:"
-  puts card.choices
-  card.check_answer
-  deck.tally_score(card.user_answer_correct, card.no_of_incorrect_tries)
-
-  if card.no_of_incorrect_tries == 2
-    second_try[card.question] = card.answers
-  end
-end
-
-second_try_deck = Deck.new(second_try)
-
-while second_try_deck.remaining_cards > 0
-  card = second_try_deck.draw_card
-  puts 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr + 126.chr
-  puts card.question
-  puts "Pick an answer from the following:"
-  puts card.choices
-  card.check_answer
-  second_try_deck.tally_score(card.user_answer_correct, card.no_of_incorrect_tries)
-end
-
-puts "You answered #{deck.no_correct_answers + second_try_deck.no_correct_answers} questions correctly and had #{deck.no_incorrect_answers + second_try_deck.no_incorrect_answers} incorrect attempts. Thanks for playing!"
+puts "You answered #{gamestate.no_correct_answers} questions correctly and had #{gamestate.no_incorrect_answers} incorrect attempts. Thanks for playing!"
 
 
 
